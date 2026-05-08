@@ -1,0 +1,32 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: SFDX_AUTH_URL
+
+steps:
+
+- script: |
+    npm install @salesforce/cli --global
+    sf --version
+  displayName: 'Install Salesforce CLI'
+
+- script: |
+    echo "$(SFDX_AUTH_URL)" > authfile.txt
+    sf org login sfdx-url --sfdx-url-file authfile.txt --alias uatorg
+  displayName: 'Authenticate UAT Org'
+
+- script: |
+    sf project deploy validate \
+    --target-org uatorg \
+    --source-dir force-app
+  displayName: 'Validate Deployment'
+
+- script: |
+    sf project deploy start \
+    --target-org uatorg \
+    --source-dir force-app
+  displayName: 'Deploy Metadata'
